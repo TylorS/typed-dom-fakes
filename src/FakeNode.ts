@@ -1,4 +1,4 @@
-import { findIndex, insert, remove } from '167'
+import { findIndex, equals } from '167'
 
 import { FakeEventTarget } from './FakeEventTarget'
 import { FakeNamedNodeMap } from './FakeNamedNodeMap'
@@ -15,14 +15,12 @@ export const enum NodeType {
 }
 
 export class FakeNode extends FakeEventTarget implements Node {
-  attributes: NamedNodeMap = new FakeNamedNodeMap()
+  attributes: FakeNamedNodeMap = new FakeNamedNodeMap()
   baseURI: string | null = null
-  childNodes: NodeList = new FakeNodeList()
-  firstChild: Node | null = null
-  lastChild: Node | null = null
+  childNodes: FakeNodeList = new FakeNodeList()
+  
   localName: string | null = null
   namespaceURI: string | null = null
-  nextSibling: Node | null = null
   nodeName: string = '#text'
   nodeType: number = NodeType.TEXT_NODE
   nodeValue: string | null = null
@@ -30,7 +28,6 @@ export class FakeNode extends FakeEventTarget implements Node {
   parentElement: HTMLElement | null = null
   parentNode: Node | null = null
   previousSibling: Node | null = null
-  textContent: string | null = ''
 
   // deprecated and should not be used
   // these are not truly implemented
@@ -53,14 +50,54 @@ export class FakeNode extends FakeEventTarget implements Node {
   PROCESSING_INSTRUCTION_NODE: number
   TEXT_NODE: number
 
-  public appendChild<T extends Node>(newChild: T): T {
-    const i = this.childNodes.length
+  protected _textContent: string
 
+  public set textContent(textContent: string) {
+    this._textContent = textContent
+  }
+
+  public get textContent(): string | null {
+    if (this._textContent) return this._textContent
+
+    if (this.nodeType === NodeType.TEXT_NODE)
+      return (this as any as Text).data
+
+    if (this.nodeType === NodeType.ELEMENT_NODE) {
+      const { childNodes } = this
+
+      return childNodes.map(node => node.textContent).join('')
+    }
+
+    return null
+  }
+
+  public get firstChild(): Node | null {
+    return this.childNodes[0] || null
+  }
+
+  public get lastChild(): Node | null {
+    return this.childNodes[this.childNodes.length - 1] || null
+  }
+
+  public get nextSibling(): Node | null {
+    const { childNodes } = this.parentNode
+
+    const index = findIndex(equals(this as Node), childNodes)
+
+    if (index > -1)
+      return childNodes[index + 1] || null 
+
+    return null
+  }
+
+  public appendChild<T extends Node>(newChild: T): T {
     if (this.nodeType === NodeType.ELEMENT_NODE) {
       ;(newChild as any).parentElement = this as any
     }
 
-    this.childNodes[i] = newChild
+    ;(newChild as any).parentNode = this
+
+    this.childNodes.push(newChild)
 
     return newChild
   }
@@ -79,7 +116,7 @@ export class FakeNode extends FakeEventTarget implements Node {
   }
 
   public contains(child: Node): boolean {
-    const index = findIndex(node => node === child, this.childNodes)
+    const index = findIndex(equals(child), this.childNodes)
 
     return index > -1
   }
@@ -93,14 +130,33 @@ export class FakeNode extends FakeEventTarget implements Node {
   }
 
   public insertBefore<T extends Node>(newChild: T, refChild: Node | null): T {
+    if (equals(refChild, newChild)) return newChild
+
     const { childNodes } = this
 
+    const nodeIndex = findIndex(equals(newChild), childNodes)
+    const alreadyContainsNode = nodeIndex > -1
+
+    if (this.nodeType === NodeType.ELEMENT_NODE) {
+      ;(newChild as any).parentElement = this as any
+    }
+
+    ;(newChild as any).parentNode = this
+
+    if (alreadyContainsNode)
+      this.removeChild(newChild)
+
     if (refChild) {
-      const index = findIndex(child => child === refChild, childNodes)
+      const index = findIndex(equals(refChild), childNodes)
 
       if (index > -1) {
-        ;(this as any).childNodes = insert(index, newChild, childNodes) as any
+        childNodes.splice(index, 0, newChild)
       }
+       else {
+        childNodes.push(newChild)
+      }
+    } else {
+      childNodes.push(newChild)
     }
 
     return newChild
@@ -147,17 +203,16 @@ export class FakeNode extends FakeEventTarget implements Node {
   }
 
   public removeChild<T extends Node>(oldChild: T): T {
-    const index = findIndex(node => node === oldChild, this.childNodes)
+    const index = findIndex(equals(oldChild), this.childNodes)
 
-    if (index > -1) {
-      ;(this as any).childNodes = remove(index, 1, this.childNodes)
-    }
+    if (index > -1)
+      this.childNodes.splice(index, 1)
 
     return oldChild
   }
 
   public replaceChild<T extends Node>(newChild: Node, oldChild: T): T {
-    const index = findIndex(node => node === oldChild, this.childNodes)
+    const index = findIndex(equals(oldChild), this.childNodes)
 
     if (index > -1) {
       this.childNodes[index] = newChild

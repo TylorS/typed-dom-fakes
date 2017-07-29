@@ -1,5 +1,5 @@
 import { FakeNode, NodeType } from './FakeNode'
-import { both, copy, equals, find, findIndex, propEq, remove } from '167'
+import { both, copy, equals, find, findIndex, propEq } from '167'
 
 import { FakeAttr } from './FakeAttr'
 import { FakeClientRectList } from './FakeClientRectList'
@@ -16,7 +16,6 @@ export class FakeElement extends FakeNode implements Element {
   clientTop: number = 0
   clientWidth: number = 0
   id: string = ''
-  innerHTML: string = ''
   msContentZoomFactor: number = 0
   msRegionOverflow: string = ''
   onariarequest: (this: Element, ev: Event) => any
@@ -65,6 +64,21 @@ export class FakeElement extends FakeNode implements Element {
   assignedSlot: HTMLSlotElement | null = null
   slot: string = ''
   shadowRoot: ShadowRoot | null = null
+
+  get innerHTML(): string {
+    const { childNodes } = this
+
+    let html: string = ''
+
+    for (let i = 0; i < childNodes.length; ++i) {
+      const childNode = childNodes[i]
+
+      if (childNode.nodeType === NodeType.TEXT_NODE)
+        html += (childNode as Text).data
+    }
+
+    return html
+  }
 
   // FakeElement specific
   public bottom: number = 0
@@ -127,8 +141,8 @@ export class FakeElement extends FakeNode implements Element {
     super()
 
     this.nodeType = NodeType.ELEMENT_NODE
-    this.nodeName = tagName
-    this.tagName = tagName
+    this.nodeName = tagName.toUpperCase()
+    this.tagName = tagName.toUpperCase()
   }
 
   public getAttribute(name: string): string | null {
@@ -260,7 +274,7 @@ export class FakeElement extends FakeNode implements Element {
     const index = findIndex(propEq<Attr>('name', qualifiedName), attributes)
 
     if (index > -1)
-      this.attributes = new FakeNamedNodeMap(...remove(index, 1, attributes as FakeNamedNodeMap))
+      this.attributes.splice(index, 1)
   }
 
   public removeAttributeNode(oldAttr: Attr): Attr {
@@ -297,12 +311,12 @@ export class FakeElement extends FakeNode implements Element {
     attr.ownerElement = this
 
     this.removeAttribute(name)
-    ;(this.attributes as FakeNamedNodeMap).push(attr)
+      ; (this.attributes as FakeNamedNodeMap).push(attr)
   }
 
   public setAttributeNode(attr: FakeAttr): FakeAttr {
     this.removeAttribute(attr.name)
-    ;(this.attributes as FakeNamedNodeMap).push(attr)
+      ; (this.attributes as FakeNamedNodeMap).push(attr)
 
     return attr
   }
@@ -442,7 +456,7 @@ export class FakeElement extends FakeNode implements Element {
     const methodName = `on${event.type}` as keyof this
 
     if (this[methodName] === 'function') {
-      ;(this[methodName] as Function).call(this, event)
+      ; (this[methodName] as Function).call(this, event)
     }
 
     return super.dispatchEvent(event)

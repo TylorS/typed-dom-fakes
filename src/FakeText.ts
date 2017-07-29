@@ -3,6 +3,10 @@ import { FakeNode, NodeType } from './FakeNode'
 export class FakeText extends FakeNode implements Text {
   data: string;
   assignedSlot: HTMLSlotElement | null = null;
+
+  get innerHTML(): string {
+    return this.data
+  }
   
   get length(): number {
     return this.data.length

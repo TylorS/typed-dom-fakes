@@ -17,9 +17,9 @@ export class FakeWindow extends FakeEventTarget implements Window {
   localStorage = mockStorage()
   console = console
 
-  indexedDB = indexedDB || ({} as IDBFactory)
-  atob = atob || id
-  btoa = btoa || id
+  indexedDB = ({} as IDBFactory)
+  atob = id
+  btoa = id
 
   fetch = fetch
 
@@ -30,7 +30,7 @@ export class FakeWindow extends FakeEventTarget implements Window {
   crypto: Crypto
   defaultStatus: string = ''
   devicePixelRatio: number = 0
-  document: Document = document
+  document: Document
   doNotTrack: string = ''
   event: Event | undefined = void 0
   external: External

@@ -1,7 +1,7 @@
 {
-  "name": "change-me",
-  "description": "change-me",
-  "repository": "https://github.com/TylorS/CHANGE_ME",
+  "name": "@typed/dom-fakes",
+  "description": "Fake DOM object implementations for testing",
+  "repository": "https://github.com/TylorS/typed-dom-fakes",
   "version": "0.0.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
