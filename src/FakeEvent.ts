@@ -1,17 +1,17 @@
 export class FakeEvent implements Event {
-  bubbles: boolean = true;
-  cancelable: boolean = true;
-  cancelBubble: boolean = true;
-  currentTarget: EventTarget;
-  defaultPrevented: boolean = false;
-  eventPhase: number = 0;
-  isTrusted: boolean = false;
-  returnValue: boolean = false;
-  srcElement: Element | null = null;
-  target: EventTarget;
-  timeStamp: number = 0;
-  type: string;
-  scoped: boolean = false;
+  bubbles: boolean = true
+  cancelable: boolean = true
+  cancelBubble: boolean = true
+  currentTarget: EventTarget
+  defaultPrevented: boolean = false
+  eventPhase: number = 0
+  isTrusted: boolean = false
+  returnValue: boolean = false
+  srcElement: Element | null = null
+  target: EventTarget
+  timeStamp: number = 0
+  type: string
+  scoped: boolean = false
 
   // FakeEvent specific
   propagationStopped: boolean = false
@@ -44,7 +44,7 @@ export class FakeEvent implements Event {
   }
 
   // DEPRECATED
-  readonly AT_TARGET: number;
-  readonly BUBBLING_PHASE: number;
-  readonly CAPTURING_PHASE: number;
+  readonly AT_TARGET: number
+  readonly BUBBLING_PHASE: number
+  readonly CAPTURING_PHASE: number
 }

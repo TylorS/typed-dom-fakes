@@ -1,13 +1,13 @@
 import { FakeNode, NodeType } from './FakeNode'
 
 export class FakeText extends FakeNode implements Text {
-  data: string;
-  assignedSlot: HTMLSlotElement | null = null;
+  data: string
+  assignedSlot: HTMLSlotElement | null = null
 
   get innerHTML(): string {
     return this.data
   }
-  
+
   get length(): number {
     return this.data.length
   }
@@ -29,7 +29,7 @@ export class FakeText extends FakeNode implements Text {
   deleteData(offset: number, count: number): void {
     const before = this.data.slice(0, offset)
     const after = this.data.slice(offset + count)
-    
+
     this.data = before + after
   }
 

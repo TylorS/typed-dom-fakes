@@ -24,11 +24,11 @@ const VOID_ELEMENTS: any = {
   PARAM: true,
   SOURCE: true,
   TRACK: true,
-  WBR: true
+  WBR: true,
 }
 
 export class FakeElement extends FakeNode implements Element {
-  classList: FakeDOMTokenList
+  classList: FakeDOMTokenList = new FakeDOMTokenList()
   clientHeight: number = 0
   clientLeft: number = 0
   clientTop: number = 0
@@ -87,14 +87,16 @@ export class FakeElement extends FakeNode implements Element {
   }
 
   set className(value: string) {
-    this.classList.splice(0, this.classList.length)
+    if (!this.classList) this.classList = new FakeDOMTokenList()
+    
+    const { classList } = this
+    
+    classList.length = 0
 
     const classNames = value.split(' ')
 
-    for (const className of classNames)
-      this.classList.add(className)
+    for (const className of classNames) classList.add(className)
   }
-
 
   protected _innerHTML: string | null = null
 
@@ -111,7 +113,7 @@ export class FakeElement extends FakeNode implements Element {
       html += (childNode as Element).outerHTML || (childNode as Text).textContent
     }
 
-    return html
+    return html.trim()
   }
 
   set innerHTML(value: string | null) {
@@ -127,20 +129,20 @@ export class FakeElement extends FakeNode implements Element {
     const { attributes } = this
 
     function shouldOutputProp(key: keyof typeof that, attrName: string): boolean {
-      if (this.getAttribute(attrName)) return false
-      if (key === 'className' || !that[key]) return false
+      if (that.getAttribute(attrName)) return false
+      else if (key === 'className' || !that[key]) return false
 
-      return true
+      return isPrimitive(that[key])
     }
 
-    function stringify(arr: Array<{ name: string, value: string }>) {
+    function stringify(arr: Array<{ name: string; value: string }>) {
       const attr: Array<string> = []
 
-      arr.forEach(function (a: { name: string, value: string }) {
-        attr.push(a.name + '=' + '\"' + escapeAttribute(a.value) + '\"');
+      arr.forEach(function(a: { name: string; value: any }) {
+        attr.push(a.name + '=' + '"' + escapeAttribute(String(a.value)) + '"')
       })
 
-      return attr.length ? attr.join(' ') : '';
+      return attr.length ? ' ' + attr.join(' ') : ''
     }
 
     function isPrimitive(x: any): x is string | number | boolean {
@@ -148,28 +150,32 @@ export class FakeElement extends FakeNode implements Element {
     }
 
     function properties() {
-      const props: Array<{ name: string, value: string }> = []
+      const props: Array<{ name: string; value: string }> = []
       for (const key in that) {
+        if (key === 'outerHTML' || !that.hasOwnProperty(key) || !isPrimitive(that[key])) continue
+
         const attrName = propToAttr(key)
 
-        const isExpectedType = isPrimitive(that[key])
-
-        if (that.hasOwnProperty(attrName) && isExpectedType && isStandardAttribute(attrName, this.nodeName) && shouldOutputProp(key, attrName)) {
+        if (
+          isPrimitive(that[key]) &&
+          isStandardAttribute(attrName, that.nodeName) &&
+          shouldOutputProp(key, attrName)
+        ) {
           props.push({ name: attrName, value: that[key] })
         }
       }
 
-      return props.length ? stringify(props) : ''
+      return props.length ? ' ' + stringify(props) : ''
     }
 
-    outerHTML.push(`<${this.nodeName.toLowerCase()} ${properties()} ${stringify(attributes)}>`)
+    outerHTML.push(`<${this.nodeName.toLowerCase()}${properties()}${stringify(attributes)}>`)
 
-    if (!VOID_ELEMENTS[this.nodeName.toUpperCase()]){
+    if (!VOID_ELEMENTS[this.nodeName.toUpperCase()]) {
       outerHTML.push(this.innerHTML)
-      outerHTML.push('</'+this.nodeName+'>')
+      outerHTML.push('</' + this.nodeName + '>')
     }
 
-    return outerHTML.join(' ')
+    return outerHTML.filter(Boolean).join('')
   }
 
   // FakeElement specific
@@ -367,8 +373,7 @@ export class FakeElement extends FakeNode implements Element {
 
     const index = findIndex(propEq<Attr>('name', qualifiedName), attributes)
 
-    if (index > -1)
-      this.attributes.splice(index, 1)
+    if (index > -1) this.attributes.splice(index, 1)
   }
 
   public removeAttributeNode(oldAttr: Attr): Attr {
@@ -405,12 +410,12 @@ export class FakeElement extends FakeNode implements Element {
     attr.ownerElement = this
 
     this.removeAttribute(name)
-      ; (this.attributes as FakeNamedNodeMap).push(attr)
+    ;(this.attributes as FakeNamedNodeMap).push(attr)
   }
 
   public setAttributeNode(attr: FakeAttr): FakeAttr {
     this.removeAttribute(attr.name)
-      ; (this.attributes as FakeNamedNodeMap).push(attr)
+    ;(this.attributes as FakeNamedNodeMap).push(attr)
 
     return attr
   }
@@ -550,7 +555,7 @@ export class FakeElement extends FakeNode implements Element {
     const methodName = `on${event.type}` as keyof this
 
     if (this[methodName] === 'function') {
-      ; (this[methodName] as Function).call(this, event)
+      ;(this[methodName] as Function).call(this, event)
     }
 
     return super.dispatchEvent(event)
@@ -693,10 +698,7 @@ export class FakeShadowRoot extends FakeDocumentFragment implements ShadowRoot {
 }
 
 function escapeHTML(s: string) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 function escapeAttribute(s: string) {

@@ -14,12 +14,12 @@ export class FakeEventTarget implements EventTarget {
     const useCapture = shouldUseCapture(options)
 
     const eventMap = useCapture ? this.useCapture : this.bubble
-    const eventListeners: Set<EventListenerOrEventListenerObject> = eventMap.get(eventType) || new Set()
+    const eventListeners: Set<EventListenerOrEventListenerObject> =
+      eventMap.get(eventType) || new Set()
 
     eventListeners.add(listener)
 
-    if (!eventMap.has(eventType))
-      eventMap.set(eventType, eventListeners)
+    if (!eventMap.has(eventType)) eventMap.set(eventType, eventListeners)
   }
 
   /*
@@ -27,7 +27,7 @@ export class FakeEventTarget implements EventTarget {
    */
   public dispatchEvent(event: Event): boolean {
     const calledCaptureListeners = this.callCaptureEventListeners(event)
-    const calledBubbleListeners =this.callBubbleEventListeners(event)
+    const calledBubbleListeners = this.callBubbleEventListeners(event)
 
     return calledCaptureListeners || calledBubbleListeners
   }
@@ -77,15 +77,18 @@ function shouldUseCapture(options?: boolean | AddEventListenerOptions): boolean 
     : options.hasOwnProperty('capture') ? options.capture : false
 }
 
-function callEventListeners(listeners: Array<EventListenerOrEventListenerObject>, event: Event): void {
+function callEventListeners(
+  listeners: Array<EventListenerOrEventListenerObject>,
+  event: Event
+): void {
   for (const listener of listeners) {
-    if (isEventListenerObject(listener))
-      listener.handleEvent(event)
-    else 
-      listener(event)
+    if (isEventListenerObject(listener)) listener.handleEvent(event)
+    else listener(event)
   }
 }
 
-function isEventListenerObject(listener: EventListenerOrEventListenerObject): listener is EventListenerObject {
+function isEventListenerObject(
+  listener: EventListenerOrEventListenerObject
+): listener is EventListenerObject {
   return typeof listener === 'object'
 }

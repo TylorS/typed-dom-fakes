@@ -1,5 +1,4 @@
-if (typeof process !== 'undefined')
-  require('./globals')
+if (typeof process !== 'undefined') require('./globals')
 
 export * from './FakeAttr'
 export * from './FakeClientRectList'

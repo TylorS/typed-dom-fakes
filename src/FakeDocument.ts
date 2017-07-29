@@ -44,7 +44,7 @@ export class FakeDocument extends FakeNode implements Document {
   linkColor: string = ''
   links: HTMLCollectionOf<HTMLAnchorElement | HTMLAreaElement>
   location: Location
-  msCapsLockWarningOff: boolean = false 
+  msCapsLockWarningOff: boolean = false
   msCSSOMElementFloatMetrics: boolean = false
   onabort: (this: Document, ev: UIEvent) => any
   onactivate: (this: Document, ev: UIEvent) => any

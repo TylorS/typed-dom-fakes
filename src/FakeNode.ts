@@ -7,7 +7,7 @@ import { FakeNodeList } from './FakeNodeList'
 export const enum NodeType {
   ELEMENT_NODE = 1,
   TEXT_NODE = 3,
-  PROCESSING_INSTRUCTION_NODE = 7,  
+  PROCESSING_INSTRUCTION_NODE = 7,
   COMMENT_NODE = 8,
   DOCUMENT_NODE = 9,
   DOCUMENT_TYPE_NODE = 10,
@@ -18,7 +18,7 @@ export class FakeNode extends FakeEventTarget implements Node {
   attributes: FakeNamedNodeMap = new FakeNamedNodeMap()
   baseURI: string | null = null
   childNodes: FakeNodeList = new FakeNodeList()
-  
+
   localName: string | null = null
   namespaceURI: string | null = null
   nodeName: string = '#text'
@@ -59,8 +59,7 @@ export class FakeNode extends FakeEventTarget implements Node {
   public get textContent(): string | null {
     if (this._textContent) return this._textContent
 
-    if (this.nodeType === NodeType.TEXT_NODE)
-      return (this as any as Text).data
+    if (this.nodeType === NodeType.TEXT_NODE) return ((this as any) as Text).data
 
     if (this.nodeType === NodeType.ELEMENT_NODE) {
       const { childNodes } = this
@@ -84,8 +83,7 @@ export class FakeNode extends FakeEventTarget implements Node {
 
     const index = findIndex(equals(this as Node), childNodes)
 
-    if (index > -1)
-      return childNodes[index + 1] || null 
+    if (index > -1) return childNodes[index + 1] || null
 
     return null
   }
@@ -143,16 +141,14 @@ export class FakeNode extends FakeEventTarget implements Node {
 
     ;(newChild as any).parentNode = this
 
-    if (alreadyContainsNode)
-      this.removeChild(newChild)
+    if (alreadyContainsNode) this.removeChild(newChild)
 
     if (refChild) {
       const index = findIndex(equals(refChild), childNodes)
 
       if (index > -1) {
         childNodes.splice(index, 0, newChild)
-      }
-       else {
+      } else {
         childNodes.push(newChild)
       }
     } else {
@@ -205,8 +201,7 @@ export class FakeNode extends FakeEventTarget implements Node {
   public removeChild<T extends Node>(oldChild: T): T {
     const index = findIndex(equals(oldChild), this.childNodes)
 
-    if (index > -1)
-      this.childNodes.splice(index, 1)
+    if (index > -1) this.childNodes.splice(index, 1)
 
     return oldChild
   }

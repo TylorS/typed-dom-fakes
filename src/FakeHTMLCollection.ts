@@ -1,6 +1,7 @@
 import { findIndex, propEq } from '167'
 
-export class FakeHTMLCollection<El extends Element = Element> extends Array<El> implements HTMLCollectionOf<El> {
+export class FakeHTMLCollection<El extends Element = Element> extends Array<El>
+  implements HTMLCollectionOf<El> {
   constructor(...items: Array<El>) {
     super(...items)
   }

@@ -369,9 +369,9 @@ export class FakeCSSStyleDeclaration implements CSSStyleDeclaration {
 
   setProperty(propertyName: string, value: string | null, priority?: string): void {
     Function.prototype(priority)
-  
+
     this[propertyName as keyof this] = value
   }
 
-  [index: number]: string;
+  [index: number]: string
 }

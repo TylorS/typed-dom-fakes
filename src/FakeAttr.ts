@@ -11,6 +11,6 @@ export class FakeAttr extends FakeNode implements Attr {
     super()
 
     this.name = name
-    this.value = value
+    this.value = String(value)
   }
 }

@@ -17,7 +17,7 @@ export class FakeWindow extends FakeEventTarget implements Window {
   localStorage = mockStorage()
   console = console
 
-  indexedDB = ({} as IDBFactory)
+  indexedDB = {} as IDBFactory
   atob = id
   btoa = id
 
@@ -359,7 +359,7 @@ export function fetch(url: RequestInfo | string, options?: RequestInit): Promise
           return ''
         })
 
-      return {
+      return ({
         ok: ((request.status / 200) | 0) == 1, // 200-299
         status: request.status,
         statusText: request.statusText,
@@ -374,7 +374,7 @@ export function fetch(url: RequestInfo | string, options?: RequestInit): Promise
           get: (n: string) => headers[n.toLowerCase()],
           has: (n: string) => n.toLowerCase() in headers,
         },
-      } as any as Response
+      } as any) as Response
     }
   })
 }

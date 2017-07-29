@@ -13,7 +13,7 @@ export class FakeHTMLElement extends FakeElement implements HTMLElement {
   hideFocus: boolean = false
   innerText: string = ''
   isContentEditable: boolean = true
-  lang: string = 'en'
+  lang: string = ''
   offsetHeight: number = 0
   offsetLeft: number = 0
   offsetParent: Element
