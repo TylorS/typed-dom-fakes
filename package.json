@@ -26,7 +26,10 @@
     "typescript": "2.4.2",
     "validate-commit-message": "3.0.1"
   },
-  "dependencies": {},
+  "dependencies": {
+    "167": "^0.36.0",
+    "mock-storage": "^1.1.0"
+  },
   "lint-staged": {
     "*.ts": [
       "prettier --write --print-width 100 --tab-width 2 --no-semi --single-quote --trailing-comma es5 --parser typescript",

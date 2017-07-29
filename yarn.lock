@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"167@0.36.0":
+"167@0.36.0", "167@^0.36.0":
   version "0.36.0"
   resolved "https://registry.yarnpkg.com/167/-/167-0.36.0.tgz#040850b3b60fda4fe1b6305676bd42dc0ffe3dae"
 
@@ -1029,6 +1029,10 @@ mkdirp@^0.5.1:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
   dependencies:
     minimist "0.0.8"
+
+mock-storage@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/mock-storage/-/mock-storage-1.1.0.tgz#cfb5161b732dfe29af8b195fb491ecbd2309eeca"
 
 modify-values@^1.0.0:
   version "1.0.0"
