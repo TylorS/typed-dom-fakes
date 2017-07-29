@@ -1,4 +1,4 @@
-import { contains, equals, findIndex } from '167'
+import { equals, findIndex } from '167'
 
 export class FakeDOMTokenList extends Array<string> implements DOMTokenList {
   public add(...tokens: Array<string>): void {
@@ -6,7 +6,7 @@ export class FakeDOMTokenList extends Array<string> implements DOMTokenList {
   }
 
   public contains(token: string): boolean {
-    return contains(token, this)
+    return this.indexOf(token) > -1
   }
 
   public item(index: number): string {

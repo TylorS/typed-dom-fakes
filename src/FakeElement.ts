@@ -7,10 +7,28 @@ import { FakeDOMTokenList } from './FakeDOMTokenList'
 import { FakeHTMLCollection } from './FakeHTMLCollection'
 import { FakeNamedNodeMap } from './FakeNamedNodeMap'
 import { FakeNodeList } from './FakeNodeList'
+import { propToAttr, isStandardAttribute } from './html-attributes'
+
+const VOID_ELEMENTS: any = {
+  AREA: true,
+  BASE: true,
+  BR: true,
+  COL: true,
+  EMBED: true,
+  HR: true,
+  IMG: true,
+  INPUT: true,
+  KEYGEN: true,
+  LINK: true,
+  META: true,
+  PARAM: true,
+  SOURCE: true,
+  TRACK: true,
+  WBR: true
+}
 
 export class FakeElement extends FakeNode implements Element {
-  classList: FakeDOMTokenList = new FakeDOMTokenList()
-  className: string = ''
+  classList: FakeDOMTokenList
   clientHeight: number = 0
   clientLeft: number = 0
   clientTop: number = 0
@@ -54,7 +72,6 @@ export class FakeElement extends FakeNode implements Element {
   onpointerover: (this: GlobalEventHandlers, ev: PointerEvent) => any
   onpointerup: (this: GlobalEventHandlers, ev: PointerEvent) => any
   onwheel: (this: GlobalEventHandlers, ev: WheelEvent) => any
-  outerHTML: string = ''
   prefix: string | null = null
   scrollHeight: number = 0
   scrollLeft: number = 0
@@ -65,19 +82,94 @@ export class FakeElement extends FakeNode implements Element {
   slot: string = ''
   shadowRoot: ShadowRoot | null = null
 
+  get className(): string {
+    return this.classList.join(' ')
+  }
+
+  set className(value: string) {
+    this.classList.splice(0, this.classList.length)
+
+    const classNames = value.split(' ')
+
+    for (const className of classNames)
+      this.classList.add(className)
+  }
+
+
+  protected _innerHTML: string | null = null
+
   get innerHTML(): string {
+    if (this._innerHTML) return this._innerHTML
+
     const { childNodes } = this
 
-    let html: string = ''
+    let html: string = childNodes.html || ''
 
     for (let i = 0; i < childNodes.length; ++i) {
       const childNode = childNodes[i]
 
-      if (childNode.nodeType === NodeType.TEXT_NODE)
-        html += (childNode as Text).data
+      html += (childNode as Element).outerHTML || (childNode as Text).textContent
     }
 
     return html
+  }
+
+  set innerHTML(value: string | null) {
+    this._innerHTML = value
+  }
+
+  protected _outerHTML: string | null = null
+
+  get outerHTML(): string {
+    const that = this
+    const outerHTML: Array<string> = []
+
+    const { attributes } = this
+
+    function shouldOutputProp(key: keyof typeof that, attrName: string): boolean {
+      if (this.getAttribute(attrName)) return false
+      if (key === 'className' || !that[key]) return false
+
+      return true
+    }
+
+    function stringify(arr: Array<{ name: string, value: string }>) {
+      const attr: Array<string> = []
+
+      arr.forEach(function (a: { name: string, value: string }) {
+        attr.push(a.name + '=' + '\"' + escapeAttribute(a.value) + '\"');
+      })
+
+      return attr.length ? attr.join(' ') : '';
+    }
+
+    function isPrimitive(x: any): x is string | number | boolean {
+      return typeof x === 'string' || typeof x === 'number' || typeof x === 'boolean'
+    }
+
+    function properties() {
+      const props: Array<{ name: string, value: string }> = []
+      for (const key in that) {
+        const attrName = propToAttr(key)
+
+        const isExpectedType = isPrimitive(that[key])
+
+        if (that.hasOwnProperty(attrName) && isExpectedType && isStandardAttribute(attrName, this.nodeName) && shouldOutputProp(key, attrName)) {
+          props.push({ name: attrName, value: that[key] })
+        }
+      }
+
+      return props.length ? stringify(props) : ''
+    }
+
+    outerHTML.push(`<${this.nodeName.toLowerCase()} ${properties()} ${stringify(attributes)}>`)
+
+    if (!VOID_ELEMENTS[this.nodeName.toUpperCase()]){
+      outerHTML.push(this.innerHTML)
+      outerHTML.push('</'+this.nodeName+'>')
+    }
+
+    return outerHTML.join(' ')
   }
 
   // FakeElement specific
@@ -141,8 +233,10 @@ export class FakeElement extends FakeNode implements Element {
     super()
 
     this.nodeType = NodeType.ELEMENT_NODE
-    this.nodeName = tagName.toUpperCase()
+    this.nodeName = tagName.toLowerCase()
     this.tagName = tagName.toUpperCase()
+
+    this.classList = new FakeDOMTokenList()
   }
 
   public getAttribute(name: string): string | null {
@@ -596,4 +690,15 @@ export class FakeShadowRoot extends FakeDocumentFragment implements ShadowRoot {
 
     return []
   }
+}
+
+function escapeHTML(s: string) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeAttribute(s: string) {
+  return escapeHTML(s).replace(/"/g, '&quot;')
 }
