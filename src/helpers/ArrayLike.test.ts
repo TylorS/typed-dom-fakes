@@ -158,6 +158,21 @@ export const test: Test = describe(`ArrayLike`, [
         equal(40, arrayLike[2])
         equal(50, arrayLike[3])
         equal(4, arrayLike.length)
+      }),
+
+      it(`returns the correct length`, ({ equal }) => {
+        const arrayLike = new ArrayLike<number>()
+
+        arrayLike[0] = 0
+        arrayLike[1] = 10
+        arrayLike[2] = 20
+        arrayLike[3] = 30
+        arrayLike[4] = 40
+        arrayLike[5] = 50
+
+        arrayLike.remove(5, 2)
+
+        equal([0, 10, 20, 30, 40], Array.from(arrayLike))
       })
     ])
   ]),

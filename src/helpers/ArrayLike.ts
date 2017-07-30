@@ -3,7 +3,7 @@ import { findIndex, keys, length } from '167'
 export class ArrayLike<A> {
   [index: number]: A
 
-  protected _length: number;
+  protected _length: number
 
   get length(): number {
     if (this._length) return this._length
@@ -45,14 +45,14 @@ export class ArrayLike<A> {
 
     if (currentLength > index) {
       for (let i = index; i < currentLength; ++i) {
-        this[i] = this[i + count]
-        this[i + count] = void 0
-      }
-    } else {
-      this[index] = void 0
-    }
+        const nextValue = this[i + count]
 
-    this._length = currentLength - count
+        if (nextValue !== void 0) {
+          this[i] = nextValue
+          delete this[i + count]
+        } else delete this[i]
+      }
+    } else this._length = currentLength - count
   }
 
   public filter(predicate: (value: A, index: number) => boolean): ArrayLike<A> {
@@ -62,10 +62,9 @@ export class ArrayLike<A> {
     for (let i = 0; i < currentLength; ++i) {
       const value = this[i]
 
-      if (predicate(value, i))
-        arrayLike.push(value)
+      if (predicate(value, i)) arrayLike.push(value)
     }
 
     return arrayLike
-  }  
+  }
 }
