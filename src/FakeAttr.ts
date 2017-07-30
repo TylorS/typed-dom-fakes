@@ -13,4 +13,8 @@ export class FakeAttr extends FakeNode implements Attr {
     this.name = name
     this.value = String(value)
   }
+
+  public toString(): string {
+    return `FakeAttr { name: ${this.name}, value: ${this.value} }`
+  }
 }

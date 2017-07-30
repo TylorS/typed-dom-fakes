@@ -1,12 +1,13 @@
+import { FakeAttr } from './FakeAttr'
 import { FakeCSSStyleDeclaration } from './FakeCSSStyleDeclaration'
 import { FakeElement } from './FakeElement'
+import { FakeEvent } from './FakeEvent'
 import { FakeHTMLCollection } from './FakeHTMLCollection'
 
 export class FakeHTMLElement extends FakeElement implements HTMLElement {
   accessKey: string = ''
   children: FakeHTMLCollection
   contentEditable: string = ''
-  dataset: DOMStringMap = {}
   dir: string = ''
   draggable: boolean = false
   hidden: boolean = false
@@ -92,12 +93,40 @@ export class FakeHTMLElement extends FakeElement implements HTMLElement {
   tabIndex: number = 0
   title: string = ''
 
+  public get dataset(): DOMStringMap {
+    const { attributes } = this
+
+    const dataset: DOMStringMap = {}
+
+    attributes.forEach(attribute => {
+      if (attribute.name.startsWith('data-')) {
+        dataset[attribute.name.slice(5)] = attribute.value
+      }
+    });
+
+    return new Proxy(dataset, {
+      set(target: DOMStringMap, property: keyof DOMStringMap, value: any) {
+        attributes.push(new FakeAttr(`data-${property.toString()}`, String(value)))
+        
+        return Reflect.set(target, property, value)
+      }
+    }) 
+  }
+
   public blur(): void {
-    this.dispatchEvent(new Event('blur', { bubbles: false }))
+    const event = new FakeEvent('blur')
+    event.target = this
+    event.bubbles = false
+
+    this.dispatchEvent(event)
   }
 
   public click(): void {
-    this.dispatchEvent(new Event('click', { bubbles: true }))
+    const event = new FakeEvent('click')
+    event.target = this
+    event.bubbles = true
+  
+    this.dispatchEvent(event)
   }
 
   /** TODO */
@@ -106,7 +135,11 @@ export class FakeHTMLElement extends FakeElement implements HTMLElement {
   }
 
   public focus(): void {
-    this.dispatchEvent(new Event('focus', { bubbles: true }))
+    const event = new FakeEvent('focus')
+    event.target = this
+    event.bubbles = true
+  
+    this.dispatchEvent(event)
   }
 
   public msGetInputContext(): MSInputMethodContext {

@@ -4,6 +4,12 @@ export class FakeText extends FakeNode implements Text {
   data: string
   assignedSlot: HTMLSlotElement | null = null
 
+  constructor(data: string) {
+    super()
+    this.nodeType = NodeType.TEXT_NODE
+    this.data = data
+  }
+
   get innerHTML(): string {
     return this.data
   }
@@ -14,12 +20,6 @@ export class FakeText extends FakeNode implements Text {
 
   get wholeText(): string {
     return this.data
-  }
-
-  constructor(data: string) {
-    super()
-    this.nodeType = NodeType.TEXT_NODE
-    this.data = data
   }
 
   appendData(arg: string): void {

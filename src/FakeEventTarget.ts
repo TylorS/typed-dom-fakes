@@ -1,3 +1,4 @@
+import { FakeEvent } from './FakeEvent'
 export type EventType = string
 
 export class FakeEventTarget implements EventTarget {
@@ -25,8 +26,16 @@ export class FakeEventTarget implements EventTarget {
   /*
    * Calls event listeners in the order they were added.
    */
-  public dispatchEvent(event: Event): boolean {
+  public dispatchEvent(event: FakeEvent): boolean {
+    if (!event.target)
+      event.target = this
+
+    event.currentTarget = this
+
     const calledCaptureListeners = this.callCaptureEventListeners(event)
+
+    event.eventPhase = 1
+
     const calledBubbleListeners = this.callBubbleEventListeners(event)
 
     return calledCaptureListeners || calledBubbleListeners
@@ -48,9 +57,16 @@ export class FakeEventTarget implements EventTarget {
     eventListeners.delete(listener)
   }
 
-  protected callBubbleEventListeners(event: Event): boolean {
+  protected callBubbleEventListeners(event: FakeEvent): boolean {
+    if(!event.bubbles) return false
+
     const { bubble } = this
     const bubbleEventListeners = bubble.get(event.type)
+
+    if (!event.target)
+      event.target = this
+
+    event.currentTarget = this
 
     if (!bubbleEventListeners) return false
 
@@ -59,15 +75,24 @@ export class FakeEventTarget implements EventTarget {
     return true
   }
 
-  protected callCaptureEventListeners(event: Event): boolean {
+  protected callCaptureEventListeners(event: FakeEvent): boolean {
     const { useCapture } = this
     const captureEventListeners = useCapture.get(event.type)
+
+    if (!event.target)
+      event.target = this
+
+    event.currentTarget = this
 
     if (!captureEventListeners) return false
 
     callEventListeners(Array.from(captureEventListeners), event)
 
     return true
+  }
+
+  public toString(): string {
+    return `FakeEventTarget {}`
   }
 }
 
@@ -79,7 +104,7 @@ function shouldUseCapture(options?: boolean | AddEventListenerOptions): boolean 
 
 function callEventListeners(
   listeners: Array<EventListenerOrEventListenerObject>,
-  event: Event
+  event: FakeEvent
 ): void {
   for (const listener of listeners) {
     if (isEventListenerObject(listener)) listener.handleEvent(event)

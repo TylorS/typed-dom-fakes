@@ -1,13 +1,15 @@
+import { FakeDOMTokenList, createDOMTokenList } from './FakeDOMTokenList'
+import { FakeHTMLCollection, createFakeHTMLCollection } from './FakeHTMLCollection'
 import { FakeNode, NodeType } from './FakeNode'
+import { FakeNodeList, createFakeNodeList } from './FakeNodeList'
 import { both, copy, equals, find, findIndex, propEq } from '167'
+import { isStandardAttribute, propToAttr } from './html-attributes'
 
 import { FakeAttr } from './FakeAttr'
 import { FakeClientRectList } from './FakeClientRectList'
-import { FakeDOMTokenList } from './FakeDOMTokenList'
-import { FakeHTMLCollection } from './FakeHTMLCollection'
+import { FakeEvent } from './FakeEvent'
 import { FakeNamedNodeMap } from './FakeNamedNodeMap'
-import { FakeNodeList } from './FakeNodeList'
-import { propToAttr, isStandardAttribute } from './html-attributes'
+import { parseSelector } from './parseSelector'
 
 const VOID_ELEMENTS: any = {
   AREA: true,
@@ -28,7 +30,7 @@ const VOID_ELEMENTS: any = {
 }
 
 export class FakeElement extends FakeNode implements Element {
-  classList: FakeDOMTokenList = new FakeDOMTokenList()
+  classList: FakeDOMTokenList = createDOMTokenList()
   clientHeight: number = 0
   clientLeft: number = 0
   clientTop: number = 0
@@ -88,9 +90,9 @@ export class FakeElement extends FakeNode implements Element {
 
   set className(value: string) {
     if (!this.classList) this.classList = new FakeDOMTokenList()
-    
+
     const { classList } = this
-    
+
     classList.length = 0
 
     const classNames = value.split(' ')
@@ -185,7 +187,9 @@ export class FakeElement extends FakeNode implements Element {
   public top: number = 0
 
   public get children(): FakeHTMLCollection {
-    return new FakeHTMLCollection(...(this.childNodes as FakeNodeList).filter(isElement))
+    const nodeList = this.childNodes.filter(isElement)
+
+    return createFakeHTMLCollection(...Array.from<any>(nodeList))
   }
 
   public get height(): number {
@@ -277,7 +281,7 @@ export class FakeElement extends FakeNode implements Element {
 
   public getElementsByTagName(name: string): NodeListOf<FakeElement> {
     const { childNodes } = this
-    const nodeList = new FakeNodeList<FakeElement>()
+    const nodeList = createFakeNodeList<FakeElement>()
 
     for (let i = 0; i < childNodes.length; ++i) {
       const childNode = childNodes[i]
@@ -452,9 +456,11 @@ export class FakeElement extends FakeNode implements Element {
 
   public getElementsByClassName<El extends Element>(className: string): NodeListOf<El> {
     const childNodes = this.childNodes as FakeNodeList
-    const nodeList = new FakeNodeList<El>()
+    const nodeList = createFakeNodeList<El>()
 
-    for (const childNode of childNodes) {
+    for (let i = 0; i < childNodes.length; ++i) {
+      const childNode = childNodes[i]
+
       if (isElement(childNode)) {
         if (childNode.classList.contains(className))
           nodeList.push(...copy<El>(childNode.getElementsByClassName(className) as NodeListOf<El>))
@@ -466,11 +472,38 @@ export class FakeElement extends FakeNode implements Element {
 
   /** TODO: Implement more complex selectors */
   public matches(selector: string): boolean {
-    if (selector.startsWith('.')) return this.classList.contains(selector.slice(1))
+    if (selector === '*') return true
 
-    if (selector.startsWith('#')) return this.id === selector.slice(1)
+    if (selector.indexOf(' ') > -1) {
+      const cssSelectors: Array<string> = selector.split(' ').filter(Boolean).map(str => str.trim())
 
-    return selector === this.tagName
+      let i = cssSelectors.length - 1
+
+      if (!this.matches(cssSelectors[i])) return false
+
+      while (--i >= 0) {
+        const parentMatches = traverseParentElements(
+          element => element.matches(cssSelectors[i]),
+          this
+        )
+
+        if (!parentMatches) return false
+      }
+
+      return true
+    }
+
+    if (selector.startsWith(`[`) && selector.endsWith(']')) {
+      selector = selector.slice(1, selector.length - 1)
+
+      const [name, value] = selector.split('=')
+
+      const attr = this.getAttribute(name)
+
+      return attr && attr.valueOf() === value.slice(1, value.length - 1)
+    }
+
+    return matchBasicCssSelector(selector, this)
   }
 
   /** TODO */
@@ -531,8 +564,14 @@ export class FakeElement extends FakeNode implements Element {
   public querySelector<El extends Element>(selector: string): El | null {
     const children = this.children
 
-    for (const child of children) {
-      if (child.matches(selector)) return child as El
+    for (let i = 0; i < children.length; ++i) {
+      const child = children[i]
+
+      if (child && child.matches(selector)) return child as El
+
+      const match = child.querySelector(selector)
+
+      if (match) return match as El
     }
 
     return null
@@ -540,9 +579,13 @@ export class FakeElement extends FakeNode implements Element {
 
   public querySelectorAll<El extends Element>(selector: string): FakeNodeList<El> {
     const children = this.children
-    const matchedElements = new FakeNodeList<El>()
+    const matchedElements = createFakeNodeList<El>()
 
-    for (const child of children) {
+    for (let i = 0; i < children.length; ++i) {
+      const child = children[i]
+
+      if (!child) continue
+
       if (child.matches(selector)) matchedElements.push(child as El)
 
       matchedElements.push(...Array.from<El>(child.querySelectorAll(selector) as NodeListOf<El>))
@@ -551,19 +594,43 @@ export class FakeElement extends FakeNode implements Element {
     return matchedElements
   }
 
-  public dispatchEvent(event: Event): boolean {
+  public dispatchEvent(event: FakeEvent): boolean {
+    if (!event.target)
+      event.target = this
+    
     const methodName = `on${event.type}` as keyof this
 
     if (this[methodName] === 'function') {
       ;(this[methodName] as Function).call(this, event)
     }
 
-    return super.dispatchEvent(event)
+    const parentElements: Array<Element> = []
+
+    traverseParentElements(element => {
+      parentElements.push(element)
+      return false
+    }, this)
+
+    let success: boolean = false
+
+    for (let i = parentElements.length - 1; i >= 0; --i)
+      success = success || (parentElements[i] as FakeElement).callCaptureEventListeners(event)
+
+    success = success || super.dispatchEvent(event)
+
+    for (let i = 0; i < parentElements.length; ++i)
+      success = success || (parentElements[i] as FakeElement).callBubbleEventListeners(event)
+
+    return success
+  }
+
+  public toString() {
+    return `FakeElement { tagName: ${this.tagName}, textContent: ${String(this.textContent)} }`
   }
 }
 
 function isElement(x: Node): x is Element {
-  return x && typeof (x as Element).tagName === 'string'
+  return !!x && x.nodeName && !!(x as Element).tagName
 }
 
 function matchesNamespace<El extends Element>(
@@ -638,7 +705,7 @@ export class FakeDocumentFragment extends FakeNode implements DocumentFragment {
 
   public querySelectorAll<El extends FakeElement>(selector: string): FakeNodeList<El> {
     const { childNodes } = this
-    const elements = new FakeNodeList<El>()
+    const elements = createFakeNodeList<El>()
 
     const nodes: Array<Element> = Array.from(childNodes as any)
 
@@ -703,4 +770,37 @@ function escapeHTML(s: string) {
 
 function escapeAttribute(s: string) {
   return escapeHTML(s).replace(/"/g, '&quot;')
+}
+
+function traverseParentElements(cb: (element: Element) => boolean, element: Element): boolean {
+  let parentElement = element.parentElement
+
+  if (!parentElement) return false
+
+  if (cb(parentElement)) return true
+
+  return traverseParentElements(cb, parentElement)
+}
+
+function matchBasicCssSelector(cssSelector: string, element: Element) {
+  const hasTagName = cssSelector[0] !== '#' && cssSelector[0] !== '.'
+
+  const { tagName, className, id } =
+    hasTagName ?
+      parseSelector(cssSelector) :
+      parseSelector(element.tagName + cssSelector)
+
+  if (tagName !== element.tagName)
+    return false
+
+  const parsedClassNames = className && className.split(' ') || []
+
+  for (let i = 0; i < parsedClassNames.length; ++i) {
+    const parsedClassName = parsedClassNames[i]
+
+    if (!element.classList.contains(parsedClassName))
+      return false
+  }
+
+  return element.id ? id === element.id : true
 }

@@ -1,8 +1,8 @@
-import { findIndex, equals } from '167'
+import { FakeNodeList, createFakeNodeList } from './FakeNodeList'
+import { equals, findIndex } from '167'
 
 import { FakeEventTarget } from './FakeEventTarget'
 import { FakeNamedNodeMap } from './FakeNamedNodeMap'
-import { FakeNodeList } from './FakeNodeList'
 
 export const enum NodeType {
   ELEMENT_NODE = 1,
@@ -17,7 +17,7 @@ export const enum NodeType {
 export class FakeNode extends FakeEventTarget implements Node {
   attributes: FakeNamedNodeMap = new FakeNamedNodeMap()
   baseURI: string | null = null
-  childNodes: FakeNodeList = new FakeNodeList()
+  childNodes: FakeNodeList = createFakeNodeList()
 
   localName: string | null = null
   namespaceURI: string | null = null
@@ -61,13 +61,7 @@ export class FakeNode extends FakeEventTarget implements Node {
 
     if (this.nodeType === NodeType.TEXT_NODE) return ((this as any) as Text).data
 
-    if (this.nodeType === NodeType.ELEMENT_NODE) {
-      const { childNodes } = this
-
-      return childNodes.map(node => node.textContent).join('')
-    }
-
-    return null
+    return this.childNodes.map(node => node.textContent).join('') || null
   }
 
   public get firstChild(): Node | null {
@@ -115,6 +109,9 @@ export class FakeNode extends FakeEventTarget implements Node {
 
   public contains(child: Node): boolean {
     const index = findIndex(equals(child), this.childNodes)
+
+    for (let i = 0; i < this.childNodes.length; ++i) 
+      if (this.childNodes[i].contains(child)) return true
 
     return index > -1
   }

@@ -1,15 +1,16 @@
 import { FakeDocumentFragment, FakeElement } from './FakeElement'
 import { FakeNode, NodeType } from './FakeNode'
+import { FakeNodeList, createFakeNodeList } from './FakeNodeList'
 
 import { FakeAttr } from './FakeAttr'
 import { FakeEvent } from './FakeEvent'
 import { FakeHTMLCollection } from './FakeHTMLCollection'
 import { FakeHTMLElement } from './FakeHTMLElement'
-import { FakeNodeList } from './FakeNodeList'
 import { FakeText } from './FakeText'
 import { FakeTouchList } from './FakeTouchList'
 import { FakeWindow } from './FakeWindow'
 import { copy } from '167'
+import { elements } from './HtmlElements'
 
 export class FakeDocument extends FakeNode implements Document {
   activeElement: Element
@@ -166,7 +167,9 @@ export class FakeDocument extends FakeNode implements Document {
   xmlVersion: string | null = null
 
   public get children(): FakeHTMLCollection {
-    return new FakeHTMLCollection(...(this.childNodes as FakeNodeList).filter(isElement))
+    return new FakeHTMLCollection(
+      ...Array.from<any>(this.childNodes as FakeNodeList).filter(isElement)
+    )
   }
 
   get firstElementChild(): Element | null {
@@ -267,7 +270,7 @@ export class FakeDocument extends FakeNode implements Document {
 
   public getElementsByTagName(name: string): NodeListOf<FakeElement> {
     const { childNodes } = this
-    const nodeList = new FakeNodeList<FakeElement>()
+    const nodeList = createFakeNodeList<FakeElement>()
 
     for (let i = 0; i < childNodes.length; ++i) {
       const childNode = childNodes[i]
@@ -338,62 +341,38 @@ export class FakeDocument extends FakeNode implements Document {
   }
 
   public querySelector(selector: string): Element | null {
-    const { childNodes } = this
-    let element: Element | null = null
+    const children = this.children
 
-    const nodes: Array<Element> = Array.from(childNodes as any)
+    for (let i = 0; i < children.length; ++i) {
+      const child = children[i]
 
-    if (selector.startsWith('#')) return this.getElementById(selector.slice(1))
+      if (!child) continue
 
-    while (nodes.length > 0) {
-      const node = nodes.shift() as Element
+      if (child.matches(selector)) return child
 
-      if (selector.startsWith('.') && node.classList.contains(selector.slice(1))) {
-        element = node
-        break
-      }
+      const match = child.querySelector(selector)
 
-      if (node.tagName === selector) {
-        element = node
-        break
-      }
-
-      nodes.push(...Array.from(node.children))
+      if (match) return match
     }
 
-    return element
+    return null
   }
 
   public querySelectorAll<El extends FakeElement>(selector: string): FakeNodeList<El> {
-    const { childNodes } = this
-    const elements = new FakeNodeList<El>()
+    const children = this.children
+    const matchedElements = createFakeNodeList<El>()
 
-    const nodes: Array<Element> = Array.from(childNodes as any)
+    for (let i = 0; i < children.length; ++i) {
+      const child = children[i]
 
-    if (selector.startsWith('#')) {
-      const element = (this.getElementById(selector.slice(1)) as any) as El
+      if (!child) continue
 
-      if (element) {
-        elements.push(element)
-        return elements
-      }
+      if (child.matches(selector)) matchedElements.push(child as El)
+
+      matchedElements.push(...Array.from<El>(child.querySelectorAll(selector) as NodeListOf<El>))
     }
 
-    while (nodes.length > 0) {
-      const node = nodes.shift() as FakeElement
-
-      if (selector.startsWith('.') && node.classList.contains(selector.slice(1))) {
-        elements.push(node as El)
-      }
-
-      if (node.tagName === selector) {
-        elements.push(node as El)
-      }
-
-      nodes.push(...Array.from(node.children))
-    }
-
-    return elements
+    return matchedElements
   }
 
   adoptNode<T extends Node>(source: T): T {
@@ -447,6 +426,9 @@ export class FakeDocument extends FakeNode implements Document {
   }
 
   createElement(tagName: string): HTMLElement {
+    if (elements[tagName as keyof typeof elements])
+      return elements[tagName as keyof typeof elements]()
+
     return new FakeHTMLElement(tagName)
   }
 
@@ -839,7 +821,7 @@ export class FakeDocument extends FakeNode implements Document {
   getElementsByName(elementName: string): NodeListOf<HTMLElement> {
     Function.prototype(elementName)
 
-    return new FakeNodeList<HTMLElement>()
+    return createFakeNodeList()
   }
 
   getSelection(): Selection {
@@ -861,7 +843,7 @@ export class FakeDocument extends FakeNode implements Document {
   msElementsFromPoint(x: number, y: number): NodeListOf<Element> {
     Function.prototype(x, y)
 
-    return new FakeNodeList<Element>()
+    return createFakeNodeList<Element>()
   }
 
   msElementsFromRect(
@@ -872,7 +854,7 @@ export class FakeDocument extends FakeNode implements Document {
   ): NodeListOf<Element> {
     Function.prototype(left, top, width, height)
 
-    return new FakeNodeList()
+    return createFakeNodeList()
   }
 
   /**
