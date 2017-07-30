@@ -52,5 +52,29 @@ export const test: Test = describe(`ArrayLike`, [
         equal(void 0, arrayLike[3])
       })
     ])
+  ]),
+
+  describe(`push`, [
+    it(`adds a new item to array like`, ({ equal }) => {
+      const arrayLike = new ArrayLike<number>()
+
+      arrayLike[0] = 0
+
+      equal(1, arrayLike.length)
+
+      arrayLike.push(1)
+
+      equal(1, arrayLike[1])
+    }),
+
+    it(`keeps correct length`, ({ equal }) => {
+      const arrayLike = new ArrayLike<number>()
+
+      arrayLike.length = 3
+
+      arrayLike.push(4)
+
+      equal(4, arrayLike.length)
+    })
   ])
 ])

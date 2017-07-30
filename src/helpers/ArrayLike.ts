@@ -27,4 +27,12 @@ export class ArrayLike<A> {
     for (let i = 0; i < indexesToRemove; ++i)
       this[i + newLength] = void 0
   }
+
+  // convenience methods
+
+  public push(value: A) {
+    if (this._length) this._length++
+    
+    this[this.length] = value
+  }
 }
