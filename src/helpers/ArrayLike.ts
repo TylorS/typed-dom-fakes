@@ -1,4 +1,4 @@
-import { findIndex, keys, length } from '167'
+import { equals, findIndex, keys, length } from '167'
 
 export class ArrayLike<A> {
   [index: number]: A
@@ -66,5 +66,31 @@ export class ArrayLike<A> {
     }
 
     return arrayLike
+  }
+
+  public insertBefore(value: A, reference: A | null): void {
+    if (reference === null) return this.push(value)
+
+    const referenceIndex = findIndex(equals(reference), this)
+    const valueIndex = findIndex(equals(value), this)
+
+    if (referenceIndex === -1) return this.push(value)
+
+    if (this.length === 1 && referenceIndex === 0) {
+      this[0] = value
+      return this.push(reference)
+    }
+
+    if (valueIndex === -1) {
+      if (this._length) this._length++
+
+      for (let i = this.length; i > referenceIndex; --i) this[i] = this[i - 1]
+
+      this[referenceIndex] = value
+    } else {
+      this.remove(valueIndex, 1)
+
+      return this.insertBefore(value, reference)
+    }
   }
 }

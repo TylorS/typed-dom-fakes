@@ -29,7 +29,7 @@ export const test: Test = describe(`ArrayLike`, [
         arrayLike.length = 0
 
         const isVoid = equal(void 0)
-        
+
         isVoid(arrayLike[0])
         isVoid(arrayLike[1])
       }),
@@ -50,8 +50,8 @@ export const test: Test = describe(`ArrayLike`, [
         equal(1, arrayLike[1])
         equal(void 0, arrayLike[2])
         equal(void 0, arrayLike[3])
-      })
-    ])
+      }),
+    ]),
   ]),
 
   describe(`push`, [
@@ -75,7 +75,7 @@ export const test: Test = describe(`ArrayLike`, [
       arrayLike.push(4)
 
       equal(4, arrayLike.length)
-    })
+    }),
   ]),
 
   describe(`findIndex`, [
@@ -97,8 +97,8 @@ export const test: Test = describe(`ArrayLike`, [
         const index = arrayLike.findIndex(x => x === 100)
 
         equal(1, index)
-      })
-    ])
+      }),
+    ]),
   ]),
 
   describe(`remove`, [
@@ -133,7 +133,7 @@ export const test: Test = describe(`ArrayLike`, [
         equal(5, arrayLike[3])
 
         equal(4, arrayLike.length)
-      })
+      }),
     ]),
 
     given(`an index and a count`, [
@@ -173,8 +173,8 @@ export const test: Test = describe(`ArrayLike`, [
         arrayLike.remove(5, 2)
 
         equal([0, 10, 20, 30, 40], Array.from(arrayLike))
-      })
-    ])
+      }),
+    ]),
   ]),
   describe(`filter`, [
     given(`a predicate`, [
@@ -193,7 +193,26 @@ export const test: Test = describe(`ArrayLike`, [
         equal(2, b[0])
         equal(4, b[1])
         equal(2, b.length)
-      })
-    ])
-  ])
+      }),
+    ]),
+  ]),
+
+  describe(`insertBefore`, [
+    given(`a value and a valid reference value`, [
+      it(`inserts the new value before reference value`, ({ equal }) => {
+        const arrayLike = new ArrayLike<number>()
+
+        arrayLike[0] = 1
+        arrayLike[1] = 2
+        arrayLike[2] = 3
+
+        arrayLike.insertBefore(4, 3)
+
+        equal(1, arrayLike[0])
+        equal(2, arrayLike[1])
+        equal(4, arrayLike[2])
+        equal(3, arrayLike[3])
+      }),
+    ]),
+  ]),
 ])
