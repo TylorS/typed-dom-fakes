@@ -1,7 +1,4 @@
-export interface FakeEvent extends Event {
-  propagationStopped: boolean
-  defaultPrevented: boolean
-}
+import { EventImpl } from '../Event'
 
 export class EventTargetImpl implements EventTarget {
   protected bubble: Map<string, Set<EventListenerOrEventListenerObject>> = new Map()
@@ -40,11 +37,11 @@ export class EventTargetImpl implements EventTarget {
     eventListeners.delete(listener)
   }
 
-  public dispatchEvent(event: FakeEvent): boolean {
+  public dispatchEvent(event: EventImpl): boolean {
     return this.dispatchToCaptureListeners(event) || this.dispatchToBubbleListeners(event)
   }
 
-  protected dispatchToCaptureListeners(event: FakeEvent): boolean {
+  protected dispatchToCaptureListeners(event: EventImpl): boolean {
     const listeners = this.capture.get(event.type)
 
     if (!listeners) return false
@@ -54,7 +51,7 @@ export class EventTargetImpl implements EventTarget {
     return true
   }
 
-  protected dispatchToBubbleListeners(event: FakeEvent): boolean {
+  protected dispatchToBubbleListeners(event: EventImpl): boolean {
     if (!event.bubbles) return false
 
     const listeners = this.bubble.get(event.type)
@@ -74,7 +71,7 @@ function deferListenersCallback(
   Promise.resolve().then(() => listeners.forEach(f))
 }
 
-function callEventListeners(event: FakeEvent) {
+function callEventListeners(event: EventImpl) {
   return function callEventListener(listener: EventListenerOrEventListenerObject): void {
     if (event.propagationStopped) return void 0
 

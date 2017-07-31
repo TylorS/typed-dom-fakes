@@ -3,6 +3,7 @@ import { equals, propEq, reverse } from '167'
 
 import { AttrImpl } from '../Attr'
 import { DOMTokenListImpl } from '../DOMTokenList'
+import { EventImpl } from '../Event'
 import { HTMLCollectionImpl } from '../HTMLCollection'
 import { NodeListImpl } from '../NodeList'
 import { VOID_ELEMENTS } from './constants'
@@ -15,7 +16,7 @@ export class ElementImpl extends NodeImpl implements Element {
   tagName: string // assigned in constructor
   id: string
 
-  // intentionally unimplemented
+  // unimplemented due to lack of current need
   clientLeft: number = 0
   clientTop: number = 0
   clientWidth: number
@@ -332,23 +333,21 @@ export class ElementImpl extends NodeImpl implements Element {
     return nodeList
   }
 
-  public dispatchEvent(event: Event): boolean {
+  public dispatchEvent(event: EventImpl): boolean {
     const parentElements = findParentElements(this)
 
     let success: boolean
 
     const trueOr = (bool: boolean) => (success ? success : bool)
 
-    // TODO: remove type cast
     for (const element of reverse(parentElements))
-      success = trueOr(element.dispatchToCaptureListeners(event as any))
+      success = trueOr(element.dispatchToCaptureListeners(event))
 
-    // TODO: remove type cast
-    success = trueOr(super.dispatchEvent(event as any))
+    success = trueOr(super.dispatchEvent(event))
 
-    // TODO: remove type cast
-    for (const element of parentElements)
-      success = trueOr(element.dispatchToBubbleListeners(event as any))
+    if (this[`on${event.type}` as keyof this]) (this[`on${event.type}` as keyof this] as any)(event)
+
+    for (const element of parentElements) success = trueOr(element.dispatchToBubbleListeners(event))
 
     return success
   }

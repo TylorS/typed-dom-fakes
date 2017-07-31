@@ -1,6 +1,7 @@
 // folders
 export * from './Element'
 export * from './EventTarget'
+export * from './HTMLElement'
 export * from './Node'
 
 // files
