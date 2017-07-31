@@ -94,15 +94,7 @@ export class ElementImpl extends NodeImpl implements Element {
   get className(): string {
     if (!this.classList) this.classList = new DOMTokenListImpl()
 
-    let str = ''
-
-    for (let i = 0; i < this.classList.length; ++i) {
-      str += this.classList[i]
-
-      if (i > 0 || i < this.classList.length - 1) str += CLASS_NAME_SEPARATOR
-    }
-
-    return str.trim()
+    return Array.from(this.classList).join(' ').trim()
   }
 
   set className(className: string) {
@@ -251,13 +243,13 @@ export class ElementImpl extends NodeImpl implements Element {
   }
 
   public hasAttribute(name: string): boolean {
-    return this.attributes.findIndex(propEq('nodeName', name)) > -1
+    return this.attributes.findIndex(propEq('name', name)) > -1
   }
 
   public removeAttribute(name: string) {
     const { attributes } = this
 
-    const index = attributes.findIndex(propEq('nodeName', name))
+    const index = attributes.findIndex(propEq('name', name))
 
     if (index > -1) this.attributes.removeFromIndex(index, 1)
   }
@@ -270,6 +262,8 @@ export class ElementImpl extends NodeImpl implements Element {
 
   public setAttributeNode(attr: AttrImpl) {
     attr.parentNode = this
+
+    if (this.hasAttribute(attr.name)) this.attributes.removeNamedItem(attr.name)
 
     if (typeof ((this as any) as HTMLElement).click === 'function')
       attr.parentElement = (this as any) as HTMLElement

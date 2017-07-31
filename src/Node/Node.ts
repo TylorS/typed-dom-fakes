@@ -17,7 +17,7 @@ export class NodeImpl extends EventTargetImpl implements Node {
   attributes: NamedNodeMapImpl = new NamedNodeMapImpl()
   ownerDocument: Document // Needs to be assigned upon creation
   childNodes: NodeListImpl<Node> = new NodeListImpl()
-  parentNode: NodeImpl // assigned with Node.appendChild or Node.insertBefore
+  parentNode: NodeImpl = null // assigned with Node.appendChild or Node.insertBefore
   nodeName: string = '#text' // defaults to text node
   nodeType: NODE_TYPE = NODE_TYPE.TEXT_NODE
   nodeValue: string = ''
@@ -90,9 +90,7 @@ export class NodeImpl extends EventTargetImpl implements Node {
 
     const { childNodes } = this
 
-    if (childNodes.length > 0) return Array.from(childNodes).map(node => node.textContent).join(' ')
-
-    return null
+    return Array.from(childNodes).map(node => node.textContent).join('')
   }
 
   set textContent(value: string) {
@@ -140,15 +138,8 @@ export class NodeImpl extends EventTargetImpl implements Node {
   }
 
   public insertBefore<N extends Node>(newNode: N, referenceNode: NodeImpl | null): N {
-    const { nodeType } = this
     ;((newNode as any) as NodeImpl).parentNode = this
-
-    if (
-      nodeType === NODE_TYPE.DOCUMENT_NODE ||
-      nodeType === NODE_TYPE.DOCUMENT_FRAGMENT_NODE ||
-      nodeType === NODE_TYPE.ELEMENT_NODE
-    )
-      ((newNode as any) as NodeImpl).parentElement = (this as any) as HTMLElement
+    ;(newNode as any).parentElement = this
 
     this.childNodes.insertBefore(newNode, referenceNode as Node | null)
 

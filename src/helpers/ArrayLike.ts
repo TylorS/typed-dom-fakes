@@ -68,12 +68,13 @@ export class ArrayLikeImpl<A> implements ArrayLike<A> {
   }
 
   public insertBefore(value: A, reference: A | null): void {
-    if (reference === null) return this.push(value)
-
-    const referenceIndex = findIndex(equals(reference), this)
     const valueIndex = findIndex(equals(value), this)
 
-    if (referenceIndex === -1) return this.push(value)
+    if (reference === null && valueIndex === -1) return this.push(value)
+
+    const referenceIndex = findIndex(equals(reference), this)
+
+    if (referenceIndex === -1 && valueIndex === -1) return this.push(value)
 
     if (this.length === 1 && referenceIndex === 0) {
       this[0] = value
