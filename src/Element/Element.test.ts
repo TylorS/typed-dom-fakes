@@ -1,6 +1,7 @@
 import { Test, describe, given, it } from '@typed/test'
 
 import { ElementImpl } from './Element'
+import { NodeImpl } from '../Node'
 
 // TODO: replaced with real Document implementation
 const document = {} as Document
@@ -202,5 +203,60 @@ export const test: Test = describe(`Element`, [
 
       element.dispatchEvent(ev as Event)
     }),
+  ]),
+
+  describe(`outerHTML`, [
+    given(`an Element with tagName h1`, [
+      it(`should return <h1></h1>`, ({ equal }) => {
+        const element = new ElementImpl(document, 'h1')
+
+        equal(`<h1></h1>`, element.outerHTML)
+      }),
+    ]),
+
+    given(`an Element with tagName H1 with with text content 'foo'`, [
+      it(`should return <h1>foo</h1>`, ({ equal }) => {
+        const element = new ElementImpl(document, 'h1')
+        const text = new NodeImpl(document, { _textContent: 'foo' })
+
+        element.appendChild(text)
+
+        equal(`<h1>foo</h1>`, element.outerHTML)
+      }),
+    ]),
+
+    given(`an element with tagName HR`, [
+      it(`return self-closing tag representation`, ({ equal }) => {
+        const element = new ElementImpl(document, 'hr')
+
+        equal(`<hr />`, element.outerHTML)
+      }),
+    ]),
+
+    given(`an Element with a parent`, [
+      it(`returns html representation`, ({ equal }) => {
+        const element = new ElementImpl(document, 'h1')
+        const parent = new ElementImpl(document, 'div')
+
+        parent.appendChild(element)
+
+        equal(`<div><h1></h1></div>`)
+      }),
+    ]),
+  ]),
+
+  describe(`innerHTML`, [
+    given(`a parent element with multiple child Elements`, [
+      it(`return html representation`, ({ equal }) => {
+        const firstChild = new ElementImpl(document, 'h1')
+        const secondChild = new ElementImpl(document, 'h2')
+        const element = new ElementImpl(document, 'div')
+
+        element.appendChild(firstChild)
+        element.appendChild(secondChild)
+
+        equal(`<h1></h1><h2></h2>`, element.innerHTML)
+      }),
+    ]),
   ]),
 ])

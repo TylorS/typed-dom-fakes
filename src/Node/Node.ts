@@ -46,6 +46,9 @@ export class NodeImpl extends EventTargetImpl implements Node {
   readonly PROCESSING_INSTRUCTION_NODE: number
   readonly TEXT_NODE: number
 
+  // NodeImpl specific
+  protected _textContent: string
+
   constructor(document: Document, other: Record<string, any> = {}) {
     super()
     this.ownerDocument = document
@@ -82,9 +85,18 @@ export class NodeImpl extends EventTargetImpl implements Node {
   }
 
   get textContent(): string | null {
+    if (this._textContent) return this._textContent
     if (this.nodeType === NODE_TYPE.TEXT_NODE) return ((this as any) as Text).data
 
+    const { childNodes } = this
+
+    if (childNodes.length > 0) return Array.from(childNodes).map(node => node.textContent).join(' ')
+
     return null
+  }
+
+  set textContent(value: string) {
+    this._textContent = value
   }
 
   public appendChild<T extends Node>(node: T): T {

@@ -5,6 +5,7 @@ import { AttrImpl } from '../Attr'
 import { DOMTokenListImpl } from '../DOMTokenList'
 import { HTMLCollectionImpl } from '../HTMLCollection'
 import { NodeListImpl } from '../NodeList'
+import { VOID_ELEMENTS } from './constants'
 import { hasCssSelector } from './hasCssSelector'
 
 const CLASS_NAME_SEPARATOR: string = ` `
@@ -119,22 +120,52 @@ export class ElementImpl extends NodeImpl implements Element {
     for (let i = 0; i < classListTokens.length; ++i) this.classList[i] = classListTokens[i]
   }
 
-  // TODO: implement derived behavior
+  // TODO: replace children with elements from parse HTML? -- is this needed behavior?
   get innerHTML(): string {
     if (this._innerHTML) return this._innerHTML
 
-    return ''
+    const childNodes = Array.from(this.childNodes)
+
+    if (childNodes.length > 0)
+      return childNodes.map(node => (node as Element).outerHTML || node.textContent).join('')
+
+    return this.textContent
   }
 
   set innerHTML(value: string) {
     this._innerHTML = value
   }
 
-  // TODO: implement dericed behavior
+  // TODO: support attributes -- if needed
   get outerHTML(): string {
     if (this._outerHTML) return this._outerHTML
 
-    return ''
+    const { nodeName } = this
+
+    let str = '<' + nodeName + this.propertiesToString()
+
+    if (VOID_ELEMENTS[nodeName]) return str + ` />`
+
+    str += `>` + (this.textContent || '')
+
+    return str + '</' + nodeName + '>'
+  }
+
+  protected propertiesToString(): string {
+    let str = ''
+
+    for (const key in this) {
+      if (this.hasOwnProperty(key)) {
+        const value = this[key]
+
+        const typeOfValue = typeof value
+
+        if (typeOfValue === 'string' || typeOfValue === 'number' || typeOfValue === 'boolean')
+          str + ` ${String(key)}='${String(value)}'`
+      }
+    }
+
+    return str
   }
 
   set outerHTML(value: string) {
