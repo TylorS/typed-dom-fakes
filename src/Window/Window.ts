@@ -175,6 +175,7 @@ export class WindowImpl extends EventTargetImpl implements Window {
   constructor(document: Document, options: Record<string, any> = {}) {
     super()
     this.document = document
+    this.window = this
 
     for (const key in options) this[key as keyof this] = options[key]
   }

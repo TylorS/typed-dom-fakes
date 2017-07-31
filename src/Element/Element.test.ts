@@ -1,10 +1,11 @@
 import { Test, describe, given, it } from '@typed/test'
 
+import { DocumentImpl } from '../Document'
 import { ElementImpl } from './Element'
+import { EventImpl } from '../Event'
 import { NodeImpl } from '../Node'
 
-// TODO: replaced with real Document implementation
-const document = {} as Document
+const document = new DocumentImpl()
 
 export const test: Test = describe(`Element`, [
   describe(`className`, [
@@ -146,8 +147,7 @@ export const test: Test = describe(`Element`, [
 
   describe(`dispatchEvent`, [
     it(`emits to capture listeners`, ({ equal }, done) => {
-      // TODO use real Event implementation
-      const ev = { type: 'click', bubbles: false } as Event
+      const ev = new EventImpl('click', false)
       const element = new ElementImpl(document, 'div')
       const parentElement = new ElementImpl(document, 'div')
 
@@ -160,12 +160,11 @@ export const test: Test = describe(`Element`, [
 
       parentElement.addEventListener(ev.type, listener, true)
 
-      element.dispatchEvent(ev as Event)
+      element.dispatchEvent(ev)
     }),
 
     it(`emits to bubbling listeners`, ({ equal }, done) => {
-      // TODO use real Event implementation
-      const ev = { type: 'click', bubbles: true } as Event
+      const ev = new EventImpl('click', true)
       const element = new ElementImpl(document, 'div')
       const parentElement = new ElementImpl(document, 'div')
 
@@ -178,12 +177,11 @@ export const test: Test = describe(`Element`, [
 
       parentElement.addEventListener(ev.type, listener)
 
-      element.dispatchEvent(ev as Event)
+      element.dispatchEvent(ev)
     }),
 
     it(`does not emit to bubbling listeners if event does not bubble`, ({ equal }, done) => {
-      // TODO use real Event implementation
-      const ev = { type: 'click', bubbles: false } as Event
+      const ev = new EventImpl('click', false)
       const element = new ElementImpl(document, 'div')
       const parentElement = new ElementImpl(document, 'div')
 
@@ -201,7 +199,7 @@ export const test: Test = describe(`Element`, [
       parentElement.addEventListener(ev.type, listener, true)
       element.addEventListener(ev.type, bubblingListener, false)
 
-      element.dispatchEvent(ev as Event)
+      element.dispatchEvent(ev)
     }),
   ]),
 
