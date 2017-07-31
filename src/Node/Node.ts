@@ -88,6 +88,16 @@ export class NodeImpl extends EventTargetImpl implements Node {
   }
 
   public appendChild<T extends Node>(node: T): T {
+    const { nodeType } = this
+    ;((node as any) as NodeImpl).parentNode = this
+
+    if (
+      nodeType === NODE_TYPE.DOCUMENT_NODE ||
+      nodeType === NODE_TYPE.DOCUMENT_FRAGMENT_NODE ||
+      nodeType === NODE_TYPE.ELEMENT_NODE
+    )
+      ((node as any) as NodeImpl).parentElement = (this as any) as HTMLElement
+
     this.childNodes.push(node)
 
     return node
@@ -118,6 +128,16 @@ export class NodeImpl extends EventTargetImpl implements Node {
   }
 
   public insertBefore<N extends Node>(newNode: N, referenceNode: NodeImpl | null): N {
+    const { nodeType } = this
+    ;((newNode as any) as NodeImpl).parentNode = this
+
+    if (
+      nodeType === NODE_TYPE.DOCUMENT_NODE ||
+      nodeType === NODE_TYPE.DOCUMENT_FRAGMENT_NODE ||
+      nodeType === NODE_TYPE.ELEMENT_NODE
+    )
+      ((newNode as any) as NodeImpl).parentElement = (this as any) as HTMLElement
+
     this.childNodes.insertBefore(newNode, referenceNode as Node | null)
 
     return newNode
@@ -140,7 +160,7 @@ export class NodeImpl extends EventTargetImpl implements Node {
 
     const index = childNodes.findIndex(equals(child))
 
-    if (index > -1) this.childNodes.remove(index, 1)
+    if (index > -1) this.childNodes.removeFromIndex(index, 1)
 
     return child
   }
@@ -151,7 +171,7 @@ export class NodeImpl extends EventTargetImpl implements Node {
     const index = childNodes.findIndex(equals(oldChild))
 
     if (index > -1) {
-      childNodes.remove(index, 1)
+      childNodes.removeFromIndex(index, 1)
       childNodes.insertBefore(newChild as Node, childNodes[index] || null)
     }
 

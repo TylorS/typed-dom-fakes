@@ -1,10 +1,10 @@
 import { Test, describe, given, it } from '@typed/test'
 
-import { ArrayLike } from './ArrayLike'
+import { ArrayLikeImpl } from './ArrayLike'
 
 export const test: Test = describe(`ArrayLike`, [
   it(`creates an array like object`, ({ same, equal }) => {
-    const arrayLike = new ArrayLike()
+    const arrayLike = new ArrayLikeImpl()
 
     const testObject = {}
 
@@ -19,7 +19,7 @@ export const test: Test = describe(`ArrayLike`, [
   describe(`length`, [
     describe(`setting`, [
       it(`removes items when being lowered`, ({ equal }) => {
-        const arrayLike = new ArrayLike()
+        const arrayLike = new ArrayLikeImpl()
 
         arrayLike[0] = 0
         arrayLike[1] = 1
@@ -35,7 +35,7 @@ export const test: Test = describe(`ArrayLike`, [
       }),
 
       it(`reports new size when being raised`, ({ equal }) => {
-        const arrayLike = new ArrayLike()
+        const arrayLike = new ArrayLikeImpl()
 
         arrayLike[0] = 0
         arrayLike[1] = 1
@@ -56,7 +56,7 @@ export const test: Test = describe(`ArrayLike`, [
 
   describe(`push`, [
     it(`adds a new item to array like`, ({ equal }) => {
-      const arrayLike = new ArrayLike<number>()
+      const arrayLike = new ArrayLikeImpl<number>()
 
       arrayLike[0] = 0
 
@@ -68,7 +68,7 @@ export const test: Test = describe(`ArrayLike`, [
     }),
 
     it(`keeps correct length`, ({ equal }) => {
-      const arrayLike = new ArrayLike<number>()
+      const arrayLike = new ArrayLikeImpl<number>()
 
       arrayLike.length = 3
 
@@ -81,7 +81,7 @@ export const test: Test = describe(`ArrayLike`, [
   describe(`findIndex`, [
     given(`a predicate function`, [
       it(`returns -1 if not found`, ({ equal }) => {
-        const arrayLike = new ArrayLike()
+        const arrayLike = new ArrayLikeImpl()
 
         const index = arrayLike.findIndex(x => x === 0)
 
@@ -89,7 +89,7 @@ export const test: Test = describe(`ArrayLike`, [
       }),
 
       it(`returns index a value is as when found`, ({ equal }) => {
-        const arrayLike = new ArrayLike()
+        const arrayLike = new ArrayLikeImpl()
 
         arrayLike[0] = 0
         arrayLike[1] = 100
@@ -104,18 +104,18 @@ export const test: Test = describe(`ArrayLike`, [
   describe(`remove`, [
     given(`an index`, [
       it(`removes an item`, ({ equal }) => {
-        const arrayLike = new ArrayLike<number>()
+        const arrayLike = new ArrayLikeImpl<number>()
 
         arrayLike[0] = 0
         arrayLike[1] = 1
 
-        arrayLike.remove(1)
+        arrayLike.removeFromIndex(1)
 
         equal(void 0, arrayLike[1])
       }),
 
       it(`moves following items to the left`, ({ equal }) => {
-        const arrayLike = new ArrayLike<number>()
+        const arrayLike = new ArrayLikeImpl<number>()
 
         arrayLike[0] = 1
         arrayLike[1] = 2
@@ -125,7 +125,7 @@ export const test: Test = describe(`ArrayLike`, [
 
         equal(5, arrayLike.length)
 
-        arrayLike.remove(2)
+        arrayLike.removeFromIndex(2)
 
         equal(1, arrayLike[0])
         equal(2, arrayLike[1])
@@ -138,7 +138,7 @@ export const test: Test = describe(`ArrayLike`, [
 
     given(`an index and a count`, [
       it(`removes n number of items`, ({ equal }) => {
-        const arrayLike = new ArrayLike<number>()
+        const arrayLike = new ArrayLikeImpl<number>()
         const index = 2
         const count = 2
 
@@ -151,7 +151,7 @@ export const test: Test = describe(`ArrayLike`, [
 
         equal(6, arrayLike.length)
 
-        arrayLike.remove(index, count)
+        arrayLike.removeFromIndex(index, count)
 
         equal(0, arrayLike[0])
         equal(10, arrayLike[1])
@@ -161,7 +161,7 @@ export const test: Test = describe(`ArrayLike`, [
       }),
 
       it(`returns the correct length`, ({ equal }) => {
-        const arrayLike = new ArrayLike<number>()
+        const arrayLike = new ArrayLikeImpl<number>()
 
         arrayLike[0] = 0
         arrayLike[1] = 10
@@ -170,7 +170,7 @@ export const test: Test = describe(`ArrayLike`, [
         arrayLike[4] = 40
         arrayLike[5] = 50
 
-        arrayLike.remove(5, 2)
+        arrayLike.removeFromIndex(5, 2)
 
         equal([0, 10, 20, 30, 40], Array.from(arrayLike))
       }),
@@ -179,7 +179,7 @@ export const test: Test = describe(`ArrayLike`, [
   describe(`filter`, [
     given(`a predicate`, [
       it(`returns a new ArrayLike with only values passing predicate`, ({ equal }) => {
-        const a = new ArrayLike<number>()
+        const a = new ArrayLikeImpl<number>()
         const isEven = (value: number) => value % 2 === 0
 
         a[0] = 1
@@ -200,7 +200,7 @@ export const test: Test = describe(`ArrayLike`, [
   describe(`insertBefore`, [
     given(`a value and a valid reference value`, [
       it(`inserts the new value before reference value`, ({ equal }) => {
-        const arrayLike = new ArrayLike<number>()
+        const arrayLike = new ArrayLikeImpl<number>()
 
         arrayLike[0] = 1
         arrayLike[1] = 2

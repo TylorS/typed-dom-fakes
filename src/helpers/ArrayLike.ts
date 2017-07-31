@@ -1,6 +1,6 @@
 import { equals, findIndex, keys, length } from '167'
 
-export class ArrayLike<A> {
+export class ArrayLikeImpl<A> implements ArrayLike<A> {
   [index: number]: A
 
   protected _length: number
@@ -27,10 +27,12 @@ export class ArrayLike<A> {
     for (let i = 0; i < indexesToRemove; ++i) this[i + newLength] = void 0
   }
 
-  public push(value: A) {
-    if (this._length) this._length++
+  public push(...values: Array<A>) {
+    if (this._length) this._length = this._length + values.length
 
-    this[this.length] = value
+    for (const value of values) {
+      this[this.length] = value
+    }
   }
 
   public findIndex(predicate: (value: A) => boolean): number {
@@ -40,7 +42,7 @@ export class ArrayLike<A> {
   /*
    * Does not support negative values for `count`.
    */
-  public remove(index: number, count: number = 1): void {
+  public removeFromIndex(index: number, count: number = 1): void {
     const currentLength = this.length
 
     if (currentLength > index) {
@@ -55,15 +57,12 @@ export class ArrayLike<A> {
     } else this._length = currentLength - count
   }
 
-  public filter(predicate: (value: A, index: number) => boolean): ArrayLike<A> {
-    const currentLength = this.length
-    const arrayLike = new ArrayLike<A>()
+  public filter(predicate: (value: A, index: number) => boolean): ArrayLikeImpl<A> {
+    const arrayLike = new ArrayLikeImpl<A>()
 
-    for (let i = 0; i < currentLength; ++i) {
-      const value = this[i]
-
+    this.forEach((value, i) => {
       if (predicate(value, i)) arrayLike.push(value)
-    }
+    })
 
     return arrayLike
   }
@@ -88,9 +87,19 @@ export class ArrayLike<A> {
 
       this[referenceIndex] = value
     } else {
-      this.remove(valueIndex, 1)
+      this.removeFromIndex(valueIndex, 1)
 
       return this.insertBefore(value, reference)
     }
+  }
+
+  public item(index: number): A {
+    return this[index]
+  }
+
+  public forEach(f: (value: A, index: number) => any) {
+    const { length } = this
+
+    for (let i = 0; i < length; ++i) f(this[i], i)
   }
 }

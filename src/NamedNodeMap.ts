@@ -1,7 +1,7 @@
-import { ArrayLike } from './helpers'
+import { ArrayLikeImpl } from './helpers'
 import { propEq } from '167'
 
-export class NamedNodeMapImpl extends ArrayLike<Attr> implements NamedNodeMap {
+export class NamedNodeMapImpl extends ArrayLikeImpl<Attr> implements NamedNodeMap {
   public getNamedItem(name: string): Attr {
     const index = this.findIndex(propEq('name', name))
 
@@ -26,7 +26,7 @@ export class NamedNodeMapImpl extends ArrayLike<Attr> implements NamedNodeMap {
 
     const attr = this[index]
 
-    this.remove(index)
+    this.removeFromIndex(index)
 
     return attr
   }
@@ -38,7 +38,7 @@ export class NamedNodeMapImpl extends ArrayLike<Attr> implements NamedNodeMap {
 
     const attr = this[index]
 
-    this.remove(index)
+    this.removeFromIndex(index)
 
     return attr
   }
