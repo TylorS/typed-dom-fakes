@@ -31,8 +31,12 @@ export class HTMLTextAreaElementImpl extends HTMLElementImpl implements HTMLText
   checkValidity(): boolean {
     return true
   }
+
   select(): void {}
+
   setCustomValidity(error: string): void {
     Function.prototype(error)
   }
+
+  setSelectionRange(): void {}
 }
