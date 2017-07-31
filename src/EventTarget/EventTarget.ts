@@ -55,6 +55,8 @@ export class EventTargetImpl implements EventTarget {
   }
 
   protected dispatchToBubbleListeners(event: FakeEvent): boolean {
+    if (!event.bubbles) return false
+
     const listeners = this.bubble.get(event.type)
 
     if (!listeners) return false

@@ -14,7 +14,7 @@ export const test: Test = describe(`EventTarget`, [
   describe(`addEventListener`, [
     it(`registers an event listener`, ({ equal }, done) => {
       const type = 'click'
-      const event = { type, bubbles: false } as Event
+      const event = { type, bubbles: true } as Event
 
       function listener(ev: Event) {
         equal(event, ev)
@@ -32,7 +32,7 @@ export const test: Test = describe(`EventTarget`, [
   describe(`dispatchEvent`, [
     it(`calls event listener`, ({ equal }, done) => {
       const type = 'click'
-      const event = { type, bubbles: false } as Event
+      const event = { type, bubbles: true } as Event
 
       function listener(ev: Event) {
         equal(event, ev)

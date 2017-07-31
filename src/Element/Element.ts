@@ -1,5 +1,5 @@
 import { NODE_TYPE, NodeImpl } from '../Node'
-import { equals, propEq } from '167'
+import { equals, propEq, reverse } from '167'
 
 import { AttrImpl } from '../Attr'
 import { DOMTokenListImpl } from '../DOMTokenList'
@@ -26,9 +26,9 @@ export class ElementImpl extends NodeImpl implements Element {
   scrollLeft: number = 0
   scrollTop: number = 0
   readonly scrollWidth: number = 0
-  readonly assignedSlot: HTMLSlotElement | null
+  readonly assignedSlot: HTMLSlotElement | null = null
   slot: string
-  readonly shadowRoot: ShadowRoot | null
+  readonly shadowRoot: ShadowRoot | null = null
 
   // event handlers
   onariarequest: (this: Element, ev: Event) => any
@@ -301,6 +301,27 @@ export class ElementImpl extends NodeImpl implements Element {
     return nodeList
   }
 
+  public dispatchEvent(event: Event): boolean {
+    const parentElements = findParentElements(this)
+
+    let success: boolean
+
+    const trueOr = (bool: boolean) => (success ? success : bool)
+
+    // TODO: remove type cast
+    for (const element of reverse(parentElements))
+      success = trueOr(element.dispatchToCaptureListeners(event as any))
+
+    // TODO: remove type cast
+    success = trueOr(super.dispatchEvent(event as any))
+
+    // TODO: remove type cast
+    for (const element of parentElements)
+      success = trueOr(element.dispatchToBubbleListeners(event as any))
+
+    return success
+  }
+
   public remove() {
     const { parentElement } = this
 
@@ -391,4 +412,18 @@ export class ElementImpl extends NodeImpl implements Element {
 
 function isElement(x: Node): x is Element {
   return (x as Element).hasOwnProperty('tagName')
+}
+
+function findParentElements(element: ElementImpl): Array<ElementImpl> {
+  const elements: Array<ElementImpl> = []
+
+  let currentParent = element.parentElement
+
+  while (currentParent) {
+    elements.push((currentParent as any) as ElementImpl)
+
+    currentParent = currentParent.parentElement
+  }
+
+  return elements
 }
