@@ -160,7 +160,13 @@ export class NodeImpl extends EventTargetImpl implements Node {
 
     const index = childNodes.findIndex(equals(child))
 
-    if (index > -1) this.childNodes.removeFromIndex(index, 1)
+    if (index > -1) {
+      const childNode = childNodes[index] as NodeImpl
+      childNode.parentNode = void 0
+      childNode.parentElement = null
+
+      childNodes.removeFromIndex(index, 1)
+    }
 
     return child
   }
@@ -171,8 +177,12 @@ export class NodeImpl extends EventTargetImpl implements Node {
     const index = childNodes.findIndex(equals(oldChild))
 
     if (index > -1) {
+      const childNode = childNodes[index] as NodeImpl
+      childNode.parentNode = void 0
+      childNode.parentElement = null
+
       childNodes.removeFromIndex(index, 1)
-      childNodes.insertBefore(newChild as Node, childNodes[index] || null)
+      childNodes.insertBefore(newChild as Node, childNode || null)
     }
 
     return oldChild
