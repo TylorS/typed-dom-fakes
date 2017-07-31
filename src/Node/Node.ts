@@ -25,26 +25,26 @@ export class NodeImpl extends EventTargetImpl implements Node {
   accessKey: string | null = null
 
   // deprecated or obsoleted before DOM4 API
-  readonly localName: string | null = null
-  readonly namespaceURI: string | null // assigned upon creation
-  readonly ATTRIBUTE_NODE: number
-  readonly CDATA_SECTION_NODE: number
-  readonly COMMENT_NODE: number
-  readonly DOCUMENT_FRAGMENT_NODE: number
-  readonly DOCUMENT_NODE: number
-  readonly DOCUMENT_POSITION_CONTAINED_BY: number
-  readonly DOCUMENT_POSITION_CONTAINS: number
-  readonly DOCUMENT_POSITION_DISCONNECTED: number
-  readonly DOCUMENT_POSITION_FOLLOWING: number
-  readonly DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: number
-  readonly DOCUMENT_POSITION_PRECEDING: number
-  readonly DOCUMENT_TYPE_NODE: number
-  readonly ELEMENT_NODE: number
-  readonly ENTITY_NODE: number
-  readonly ENTITY_REFERENCE_NODE: number
-  readonly NOTATION_NODE: number
-  readonly PROCESSING_INSTRUCTION_NODE: number
-  readonly TEXT_NODE: number
+  localName: string | null = null
+  namespaceURI: string | null // assigned upon creation
+  ATTRIBUTE_NODE: number
+  CDATA_SECTION_NODE: number
+  COMMENT_NODE: number
+  DOCUMENT_FRAGMENT_NODE: number
+  DOCUMENT_NODE: number
+  DOCUMENT_POSITION_CONTAINED_BY: number
+  DOCUMENT_POSITION_CONTAINS: number
+  DOCUMENT_POSITION_DISCONNECTED: number
+  DOCUMENT_POSITION_FOLLOWING: number
+  DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: number
+  DOCUMENT_POSITION_PRECEDING: number
+  DOCUMENT_TYPE_NODE: number
+  ELEMENT_NODE: number
+  ENTITY_NODE: number
+  ENTITY_REFERENCE_NODE: number
+  NOTATION_NODE: number
+  PROCESSING_INSTRUCTION_NODE: number
+  TEXT_NODE: number
 
   // NodeImpl specific
   protected _textContent: string

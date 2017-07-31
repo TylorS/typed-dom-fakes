@@ -1,6 +1,7 @@
 // TODO: implement missing elements
 
 export * from './HTMLElement'
+export * from './createElement'
 export * from './HTMLAnchorElement'
 // Applet
 // Area

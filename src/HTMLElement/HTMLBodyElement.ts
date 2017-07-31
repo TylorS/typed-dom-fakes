@@ -1,6 +1,6 @@
 import { HTMLElementImpl } from './HTMLElement'
 
-export class HTMLBodyElmentImpl extends HTMLElementImpl implements HTMLBodyElement {
+export class HTMLBodyElementImpl extends HTMLElementImpl implements HTMLBodyElement {
   aLink: any
   background: string
   bgColor: any
